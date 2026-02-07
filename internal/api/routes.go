@@ -3,9 +3,16 @@ package api
 import (
 	"user-management/internal/handler"
 	"user-management/internal/middleware"
+
+	"github.com/gin-contrib/pprof"
 )
 
 func (s *Server) SetupRoutes(authHandler *handler.AuthHandler, userHandler *handler.UserHandler) {
+	// Register pprof routes
+	if s.cfg.App.Environment != "production" {
+		pprof.Register(s.router)
+	}
+
 	api := s.router.Group("/api/v1")
 
 	// Health check
