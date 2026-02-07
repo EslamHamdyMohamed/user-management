@@ -14,6 +14,7 @@ import (
 type Config struct {
 	Server   ServerConfig   `yaml:"server"`
 	Database DatabaseConfig `yaml:"database"`
+	Redis    RedisConfig    `yaml:"redis"`
 	JWT      JWTConfig      `yaml:"jwt"`
 	App      AppConfig      `yaml:"app"`
 }
@@ -25,6 +26,10 @@ type ServerConfig struct {
 	WriteTimeout    time.Duration `yaml:"write_timeout" env:"WRITE_TIMEOUT" env-default:"10s"`
 	IdleTimeout     time.Duration `yaml:"idle_timeout" env:"IDLE_TIMEOUT" env-default:"60s"`
 	CORS            CORSConfig    `yaml:"cors"`
+}
+
+type RedisConfig struct {
+	URL string `yaml:"url" env:"REDIS_URL" env-default:"redis://localhost:6379"`
 }
 
 type CORSConfig struct {
@@ -161,6 +166,8 @@ func loadFromEnv(cfg *Config) error {
 	cfg.Database.ConnMaxIdleTime, _ = time.ParseDuration(getEnv("DB_CONN_MAX_IDLE_TIME", "1m"))
 	cfg.Database.MaxOpenConns = 25 // Simplified
 	cfg.Database.MaxIdleConns = 10
+
+	cfg.Redis.URL = getEnv("REDIS_URL", "redis://localhost:6379")
 
 	cfg.JWT.Secret = getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-in-production")
 	cfg.JWT.AccessExpiration, _ = time.ParseDuration(getEnv("JWT_ACCESS_EXPIRY", "24h"))

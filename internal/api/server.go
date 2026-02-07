@@ -15,6 +15,7 @@ import (
 	"user-management/internal/repository"
 	"user-management/internal/service"
 	"user-management/internal/utils"
+	"user-management/pkg/cache"
 	"user-management/pkg/database"
 	"user-management/pkg/logger"
 
@@ -27,6 +28,7 @@ type Server struct {
 	router     *gin.Engine
 	server     *http.Server
 	db         *database.Database
+	cache      cache.Cache
 	jwtManager *utils.JWTManager
 	logger     *logger.Logger
 }
@@ -67,6 +69,13 @@ func (s *Server) Setup() error {
 	}
 	s.db = db
 
+	// Initialize Cache
+	redisCache, err := cache.NewRedisCache(s.cfg.Redis.URL)
+	if err != nil {
+		return fmt.Errorf("failed to initialize cache: %w", err)
+	}
+	s.cache = redisCache
+
 	// Run migrations
 	if err := s.db.RunMigrations("internal/migration/migrations"); err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
@@ -80,7 +89,7 @@ func (s *Server) Setup() error {
 	userRepo := repository.NewUserRepository(s.db.DB)
 
 	// Initialize services
-	userService := service.NewUserService(userRepo, s.jwtManager, passwordManager)
+	userService := service.NewUserService(userRepo, s.jwtManager, passwordManager, s.cache)
 
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler(userService, s.jwtManager)
@@ -145,6 +154,11 @@ func (s *Server) Run() error {
 	// Close database connection
 	if err := s.db.Close(); err != nil {
 		s.logger.Error().Err(err).Msg("Failed to close database connection")
+	}
+
+	// Close Cache
+	if err := s.cache.Close(); err != nil {
+		s.logger.Error().Err(err).Msg("Failed to close cache")
 	}
 
 	s.logger.Info().Msg(" Server shutdown completed")

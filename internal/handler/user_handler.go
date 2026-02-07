@@ -72,7 +72,7 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, dtos.UserTransformer(dtos.SafeUser(user)))
 }
 
 func (h *UserHandler) UpdateUser(c *gin.Context) {
@@ -141,7 +141,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, dtos.UserTransformer(dtos.SafeUser(user)))
 }
 
 func (h *UserHandler) ListUsers(c *gin.Context) {
@@ -182,7 +182,7 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, dtos.UserListResponse{
-		Users: users,
+		Users: dtos.UsersTransformer(users),
 		Pagination: dtos.Pagination{
 			Limit:      limit,
 			NextCursor: nextCursor,

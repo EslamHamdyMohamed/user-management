@@ -2,12 +2,15 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 	"user-management/internal/dtos"
 	"user-management/internal/models"
 	"user-management/internal/repository"
 	"user-management/internal/utils"
+	"user-management/pkg/cache"
 
 	"github.com/google/uuid"
 )
@@ -24,17 +27,20 @@ type userService struct {
 	repo            repository.UserRepository
 	jwtManager      *utils.JWTManager
 	passwordManager *utils.PasswordManager
+	cache           cache.Cache
 }
 
 func NewUserService(
 	repo repository.UserRepository,
 	jwtManager *utils.JWTManager,
 	passwordManager *utils.PasswordManager,
+	cache cache.Cache,
 ) UserService {
 	return &userService{
 		repo:            repo,
 		jwtManager:      jwtManager,
 		passwordManager: passwordManager,
+		cache:           cache,
 	}
 }
 
@@ -75,6 +81,16 @@ func (s *userService) GetUser(ctx context.Context, userID, targetID uuid.UUID) (
 		return nil, errors.New("unauthorized")
 	}
 
+	// Check cache
+	cacheKey := fmt.Sprintf("user:%s", targetID.String())
+	cachedUser, err := s.cache.Get(ctx, cacheKey)
+	if err == nil {
+		var user models.User
+		if err := json.Unmarshal([]byte(cachedUser), &user); err == nil {
+			return &user, nil
+		}
+	}
+
 	user, err := s.repo.FindByID(ctx, targetID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user: %w", err)
@@ -83,6 +99,9 @@ func (s *userService) GetUser(ctx context.Context, userID, targetID uuid.UUID) (
 	if user == nil {
 		return nil, errors.New("user not found")
 	}
+
+	// Cache user for 15 minutes
+	_ = s.cache.Set(ctx, cacheKey, user, 15*time.Minute)
 
 	return user, nil
 }
@@ -139,6 +158,10 @@ func (s *userService) UpdateUser(
 	if err != nil {
 		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
+
+	// Invalidate cache
+	cacheKey := fmt.Sprintf("user:%s", targetID.String())
+	_ = s.cache.Delete(ctx, cacheKey)
 
 	// Get updated user
 	updatedUser, err := s.repo.FindByID(ctx, targetID)
