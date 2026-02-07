@@ -1,0 +1,33 @@
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  enable:
+    - govet
+    - errcheck
+    - staticcheck
+    - ineffassign
+    - gosimple
+    - revive
+    - gofmt
+    - goimports
+    - bodyclose
+    - unconvert
+    - whitespace
+    - nilerr
+
+linters-settings:
+  revive:
+    rules:
+      - name: var-naming
+      - name: line-length-limit
+        arguments: [140]
+      - name: early-return
+      - name: empty-lines
+      - name: unused-parameter
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude-use-default: false

@@ -1,0 +1,49 @@
+# Binaries
+bin/
+dist/
+*.exe
+*.exe~
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Dependency directories
+vendor/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Test coverage
+coverage.txt
+coverage.html
+profile.out
+
+# Go files
+*.test
+*.prof
+
+# Build artifacts
+main
+user-management
+*.so
+*.dll
+
+# Logs
+*.log
+logs/
+
+# Temp files
+tmp/
+temp/
+
+# Config overrides
+config.local.yaml
