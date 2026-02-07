@@ -5,8 +5,9 @@ A robust RESTful API service for managing users, built with Go and Gin. This ser
 ## Getting Started
 
 ### Prerequisites
-- Go 1.25 or higher
+- Go 1.25 
 - PostgreSQL
+- Redis
 
 ### Installation
 
@@ -28,7 +29,18 @@ A robust RESTful API service for managing users, built with Go and Gin. This ser
    go run cmd/server/main.go
    ```
 
-The server will start on port `8080` (default).
+The server will start on port `8082` (default).
+
+## Running with Docker
+
+Alternatively, you can run the entire stack using Docker Compose:
+
+```bash
+docker-compose up --build
+```
+
+This will start the application, PostgreSQL, and Redis. The API will be available at `http://localhost:8082`.
+
 
 ## API Documentation
 
@@ -39,7 +51,7 @@ Authorization: Bearer <your_access_token>
 ```
 
 ### Base URL
-`http://localhost:8080/api/v1`
+`http://localhost:8082/api/v1`
 
 ### Endpoints
 
